@@ -1,0 +1,9 @@
+server:
+  port: 8080
+
+gateway:
+  rate-limiting:
+    enabled: true
+    limit: 10
+    window-seconds: 60
+    cleanup-interval-seconds: 30

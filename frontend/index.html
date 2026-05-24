@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini API Gateway Dashboard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo-area">
+                <span class="logo-icon">⚡</span>
+                <div class="logo-text">
+                    <h1>Mini API Gateway</h1>
+                    <span class="logo-sub">Spring Boot Traffic & Rate Limiting Engine</span>
+                </div>
+            </div>
+            <div class="system-status">
+                <span class="status-pulse"></span>
+                <span class="status-label">Gateway: Active</span>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Content -->
+        <main class="dashboard-grid">
+            
+            <!-- Left Panel: Controls and IP simulator -->
+            <section class="dashboard-card controls-card">
+                <div class="card-header">
+                    <h2>Traffic Simulator</h2>
+                    <p>Trigger requests to the gateway API and evaluate rate-limiting behavior.</p>
+                </div>
+                
+                <div class="control-group">
+                    <label for="client-ip-select">Client IP Address</label>
+                    <div class="ip-input-container">
+                        <select id="client-ip-select" class="form-control">
+                            <option value="192.168.1.100">192.168.1.100 (Default Client)</option>
+                            <option value="10.0.0.5">10.0.0.5 (Dev Host)</option>
+                            <option value="8.8.8.8">8.8.8.8 (Google Proxy)</option>
+                            <option value="custom">-- Custom IP Address --</option>
+                        </select>
+                        <input type="text" id="custom-ip-input" class="form-control hidden" placeholder="Enter Client IP (e.g. 172.16.2.3)">
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="btn-test" class="btn btn-primary">
+                        <span class="btn-icon">🔍</span> Send Test (/api/test)
+                    </button>
+                    <button id="btn-health" class="btn btn-secondary">
+                        <span class="btn-icon">❤️</span> Check Health (/api/health)
+                    </button>
+                    <button id="btn-status" class="btn btn-secondary">
+                        <span class="btn-icon">📊</span> Check Status (/api/status)
+                    </button>
+                </div>
+
+                <div class="separator"></div>
+
+                <div class="burst-simulator">
+                    <h3>Burst Attack Simulator</h3>
+                    <p>Trigger 12 concurrent/sequential requests in a microsecond burst. The rate limit configuration allows up to 10 requests within a 60-second sliding window.</p>
+                    <button id="btn-burst" class="btn btn-danger btn-block">
+                        <span class="btn-icon">🔥</span> Launch Burst Simulation (12 Req)
+                    </button>
+                    <div class="burst-progress-container hidden">
+                        <div class="burst-progress-bar" id="burst-progress"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Middle Panel: Active Request Response & Headers -->
+            <section class="dashboard-card response-card">
+                <div class="card-header">
+                    <h2>Gateway Response</h2>
+                    <p>HTTP Response payload, status code, and header diagnostic metadata.</p>
+                </div>
+
+                <div class="response-status-bar">
+                    <span class="status-indicator status-idle" id="status-badge">Idle</span>
+                    <span id="response-time" class="response-time-lbl"></span>
+                </div>
+
+                <!-- Cooldown Countdown -->
+                <div id="cooldown-container" class="cooldown-timer hidden">
+                    <div class="timer-circle">
+                        <span id="cooldown-timer-val">60</span>s
+                    </div>
+                    <div class="timer-text">
+                        <h4>Throttled (HTTP 429)</h4>
+                        <p>Sliding window rate limit exceeded. Retry enabled in: <strong id="retry-countdown">60</strong> seconds.</p>
+                    </div>
+                </div>
+
+                <div class="diagnostic-headers">
+                    <div class="header-field">
+                        <span class="h-key">X-Correlation-Id:</span>
+                        <span class="h-val" id="header-correlation-id">-</span>
+                    </div>
+                    <div class="header-field">
+                        <span class="h-key">Retry-After:</span>
+                        <span class="h-val" id="header-retry-after">-</span>
+                    </div>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header">
+                        <span>JSON Payload</span>
+                        <button id="btn-clear-response" class="btn-clear">Clear</button>
+                    </div>
+                    <pre><code id="json-response-code">{}</code></pre>
+                </div>
+            </section>
+
+            <!-- Right Panel: Centralized Live Logs -->
+            <section class="dashboard-card terminal-card">
+                <div class="card-header">
+                    <h2>Centralized Live Logs</h2>
+                    <p>Log stream captured from the Gateway execution context.</p>
+                </div>
+                <div class="terminal-container">
+                    <div class="terminal-header">
+                        <div class="terminal-dots">
+                            <span class="dot red"></span>
+                            <span class="dot yellow"></span>
+                            <span class="dot green"></span>
+                        </div>
+                        <span class="terminal-title">gateway-live-stream.log</span>
+                        <button id="btn-clear-logs" class="btn-clear">Clear logs</button>
+                    </div>
+                    <div class="terminal-body" id="terminal-body">
+                        <div class="log-line log-info">[system] Console initialized. Ready to intercept traffic.</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Grid: Metrics Tracker -->
+        <footer class="metrics-grid">
+            <div class="metric-card">
+                <span class="metric-icon blue">⚡</span>
+                <div class="metric-details">
+                    <h3>Total Requests</h3>
+                    <p class="metric-value" id="metric-total-requests">0</p>
+                </div>
+            </div>
+            <div class="metric-card">
+                <span class="metric-icon green">✅</span>
+                <div class="metric-details">
+                    <h3>Successful (2xx)</h3>
+                    <p class="metric-value" id="metric-success-requests">0</p>
+                </div>
+            </div>
+            <div class="metric-card">
+                <span class="metric-icon red">🛑</span>
+                <div class="metric-details">
+                    <h3>Blocked (429)</h3>
+                    <p class="metric-value" id="metric-blocked-requests">0</p>
+                </div>
+            </div>
+            <div class="metric-card">
+                <span class="metric-icon yellow">⚙️</span>
+                <div class="metric-details">
+                    <h3>Window Limit</h3>
+                    <p class="metric-value">10 Req / 60s</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+# Maven build output
+target/
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Centralized Logs
+logs/
+*.log
+
+# IDE Specific Files
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+bin/
+.metadata/
+*.sublime-project
+*.sublime-workspace
+
+# Operating System Files
+Thumbs.db
+.DS_Store
+
+# Temporary & Cache Files
+*.tmp
+*.bak
+*.swp
+.gradle/
+build/
+.history/
