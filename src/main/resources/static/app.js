@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
+    const gatewayUrlInput = document.getElementById('gateway-url-input');
     const clientIpSelect = document.getElementById('client-ip-select');
     const customIpInput = document.getElementById('custom-ip-input');
     const btnTest = document.getElementById('btn-test');
@@ -26,6 +27,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const cooldownContainer = document.getElementById('cooldown-container');
     const cooldownTimerVal = document.getElementById('cooldown-timer-val');
     const retryCountdown = document.getElementById('retry-countdown');
+
+    // Auto-detect and set Gateway URL default
+    const isLocalGateway = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port === '8080';
+    gatewayUrlInput.value = isLocalGateway ? window.location.origin : 'http://localhost:8080';
+
+    function getGatewayBaseUrl() {
+        let url = gatewayUrlInput.value.trim();
+        if (!url) {
+            url = 'http://localhost:8080';
+        }
+        return url.replace(/\/+$/, '');
+    }
 
     // Local Metrics State
     let totalRequests = 0;
@@ -102,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function sendRequest(endpoint) {
         const clientIp = getClientIp();
         const startTime = performance.now();
-        const targetUrl = `http://localhost:8080${endpoint}`;
+        const targetUrl = `${getGatewayBaseUrl()}${endpoint}`;
 
         logToTerminal(`Dispatching GET ${endpoint} | Simulated IP: ${clientIp}`, "trace");
 
@@ -182,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Slight delay (50ms) to ensure timestamps are registered sequentially, demonstrating sliding window filling up
             await new Promise(r => setTimeout(r, 50));
             
-            const targetUrl = `http://localhost:8080/api/test`;
+            const targetUrl = `${getGatewayBaseUrl()}/api/test`;
             const startTime = performance.now();
 
             const reqPromise = fetch(targetUrl, {

@@ -56,6 +56,18 @@ public class RateLimitingFilter implements Filter {
             return;
         }
 
+        // Configure CORS headers for all incoming gateway requests
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        response.setHeader("Access-Control-Allow-Headers", "X-Forwarded-For, X-Correlation-Id, Content-Type, Authorization, Origin, Accept");
+        response.setHeader("Access-Control-Expose-Headers", "X-Correlation-Id, Retry-After");
+
+        // Handle preflight requests
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            response.setStatus(HttpServletResponse.SC_OK);
+            return;
+        }
+
         long startTime = System.nanoTime();
 
         // 1. Establish Correlation Tracking (MDC)
